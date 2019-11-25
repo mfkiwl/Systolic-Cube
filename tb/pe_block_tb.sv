@@ -119,7 +119,8 @@ end
 always #10 clk = ~clk;
 
 pe_block #(
-  .ARRAY_NUM(ARRAY_NUM)
+  .ARRAY_NUM(ARRAY_NUM)，
+  .BLOCK_NUM(BLOCK_NUM)
 ) uut (
   .iClk(clk),
   .iRst(rst),
