@@ -43,7 +43,7 @@ pe_array #(
 generate
   genvar i;
 
-  for (i = 1; i < BLOCK_NUM; i = i + 1) begin
+  for (i = 1; i < BLOCK_NUM-1; i = i + 1) begin
     always @(posedge iClk) begin
       if (iRst) begin
         cfs_pass_data_left_dly[i] <= 'd0;
@@ -64,7 +64,7 @@ generate
       .iClk(iClk),
       .iRst(iRst),
       .iClearAcc(iClearAcc),
-      .iCfsPassDataLeft(cfs_pass_data_left_dly[i]),
+      .iCfsPassDataLeft(cfs_pass_data_left_dly[i-1]),
       .iData(iData[8*ARRAY_NUM*(i+1)-1:8*ARRAY_NUM*i]),
       .iWeight(weight_to_pe_block[i]),
       .iCfsOutputLeftShift(iCfsOutputLeftShift),
