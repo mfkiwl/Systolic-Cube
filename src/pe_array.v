@@ -77,9 +77,9 @@ generate
   for (i = 0; i < ARRAY_NUM; i = i + 1) begin
     always @(posedge iClk) begin
       if (iRst) begin
-        oResult[(i+1)*8:i*8] <= 'd0;
+        oResult[(i+1)*8-1:i*8] <= 'd0;
       end else begin
-        oResult[(i+1)*8:i*8] <= acc[i] >> iCfsOutputLeftShift;
+        oResult[(i+1)*8-1:i*8] <= acc[i] >> iCfsOutputLeftShift;
       end
     end
   end

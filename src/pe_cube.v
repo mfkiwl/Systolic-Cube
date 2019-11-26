@@ -19,9 +19,9 @@ module pe_cube #(
 // need to extend if CUBE_NUM is not 3!
 localparam PATTERN_1 = 3'd0,
            PATTERN_2 = 3'd1,
-           PATTERN_3 = 3'd3,
-           PATTERN_4 = 3'd2,
-           PATTERN_5 = 3'd6;
+           PATTERN_3 = 3'd2,
+           PATTERN_4 = 3'd3,
+           PATTERN_5 = 3'd4;
 
 wire [8*BLOCK_NUM-1:0]           data_after_mux [0:ARRAY_NUM-1];
 wire [8*ARRAY_NUM*BLOCK_NUM-1:0] data_to_pe_block;
@@ -56,7 +56,7 @@ generate
       .iWeight(iWeight[8*(i+1)-1:8*i]),
       .iCfsPassDataLeft(iCfsPassDataLeft),
       .iCfsOutputLeftShift(iCfsOutputLeftShift),
-      .oResult(oResult)
+      .oResult(oResult[8*ARRAY_NUM*BLOCK_NUM*(i+1)-1:8*ARRAY_NUM*BLOCK_NUM*i])
     );
   end
 endgenerate

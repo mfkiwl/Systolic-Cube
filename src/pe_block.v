@@ -37,7 +37,7 @@ pe_array #(
   .iWeight(weight_to_pe_block[0]),
   .iCfsOutputLeftShift(iCfsOutputLeftShift),
   .oWeight(weight_from_pe_block[0]),
-  .oResult(oResult)
+  .oResult(oResult[8*ARRAY_NUM-1:0])
 );
 
 generate
@@ -69,7 +69,7 @@ generate
       .iWeight(weight_to_pe_block[i]),
       .iCfsOutputLeftShift(iCfsOutputLeftShift),
       .oWeight(weight_from_pe_block[i]),
-      .oResult(oResult)
+      .oResult(oResult[8*ARRAY_NUM*(i+1)-1:8*ARRAY_NUM*i])
     );
   end
 endgenerate
