@@ -12,7 +12,8 @@ module pe_cube #(
   input  wire [3*ARRAY_NUM-1:0]  iCfsInputPattern, // need to extend if CUBE_NUM is not 3!
   input  wire [ARRAY_NUM-2:0]    iCfsPassDataLeft,
   input  wire [4:0]              iCfsOutputLeftShift,
-  output wire [8*ARRAY_NUM*BLOCK_NUM*CUBE_NUM-1:0] oResult
+  output wire [8*ARRAY_NUM*BLOCK_NUM*CUBE_NUM-1:0] oResult,
+  output wire [ARRAY_NUM*BLOCK_NUM*CUBE_NUM-1:0] oResultValid
 );
 
 // iCfsInputPattern states
@@ -25,6 +26,21 @@ localparam PATTERN_1 = 3'd0,
 
 wire [8*BLOCK_NUM-1:0]           data_after_mux [0:ARRAY_NUM-1];
 wire [8*ARRAY_NUM*BLOCK_NUM-1:0] data_to_pe_block;
+
+wire clear_acc_to_pe_block;
+reg clear_acc_dly, clear_acc_dly2;
+
+assign clear_acc_to_pe_block = clear_acc_dly2;
+
+always @(posedge iClk) begin
+	if (iRst) begin
+		clear_acc_dly  <= 'd0;
+		clear_acc_dly2 <= 'd0;
+	end else begin
+		clear_acc_dly  <= iClearAcc;
+		clear_acc_dly2 <= clear_acc_dly;
+	end
+end
 
 generate
   genvar i, j;
@@ -51,12 +67,13 @@ generate
     ) pe_block_i (
       .iClk(iClk),
       .iRst(iRst),
-      .iClearAcc(iClearAcc),
+      .iClearAcc(clear_acc_to_pe_block),
       .iData(data_to_pe_block),
       .iWeight(iWeight[8*(i+1)-1:8*i]),
       .iCfsPassDataLeft(iCfsPassDataLeft),
       .iCfsOutputLeftShift(iCfsOutputLeftShift),
-      .oResult(oResult[8*ARRAY_NUM*BLOCK_NUM*(i+1)-1:8*ARRAY_NUM*BLOCK_NUM*i])
+      .oResult(oResult[8*ARRAY_NUM*BLOCK_NUM*(i+1)-1:8*ARRAY_NUM*BLOCK_NUM*i]),
+      .oResultValid(oResultValid[ARRAY_NUM*BLOCK_NUM*(i+1)-1:ARRAY_NUM*BLOCK_NUM*i])
     );
   end
 endgenerate

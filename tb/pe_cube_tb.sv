@@ -27,6 +27,7 @@ reg                    rst;
 reg                    clear_acc;
 reg  [4:0]             output_left_shift;
 wire [8*ARRAY_NUM*BLOCK_NUM*CUBE_NUM-1:0] result;
+wire [ARRAY_NUM*BLOCK_NUM*CUBE_NUM-1:0] result_valid;
 
 reg  [ARRAY_NUM-2:0]   pass_data_left;
 reg  [8*ARRAY_NUM-1:0] data1;
@@ -201,11 +202,20 @@ end
 always #10 clk = ~clk;
 
 always @(start_config) begin
-  while (data1_mem.size()          != 0 &&
-         data2_mem.size()          != 0 &&
-         weight_mem.size()         != 0 &&
-         pass_data_left_mem.size() != 0 &&
-         input_pattern_mem.size()  != 0) begin
+  // while (data1_mem.size()          != 0 &&
+  //        data2_mem.size()          != 0 &&
+  //        weight_mem.size()         != 0 &&
+  //        pass_data_left_mem.size() != 0 &&
+  //        input_pattern_mem.size()  != 0) begin
+  //   data1 = data1_mem.pop_front();
+  //   data2 = data2_mem.pop_front();
+  //   weight = weight_mem.pop_front();
+  //   pass_data_left = pass_data_left_mem.pop_front();
+  //   input_pattern = input_pattern_mem.pop_front();
+  //   @(posedge clk) #1 ;
+  // end
+
+  for (i = 0; i < 27; i = i + 1) begin
     data1 = data1_mem.pop_front();
     data2 = data2_mem.pop_front();
     weight = weight_mem.pop_front();
@@ -213,7 +223,18 @@ always @(start_config) begin
     input_pattern = input_pattern_mem.pop_front();
     @(posedge clk) #1 ;
   end
+  clear_acc = 1;
+  for (i = 0; i < 4; i = i + 1) begin
+    data1 = data1_mem.pop_front();
+    data2 = data2_mem.pop_front();
+    weight = weight_mem.pop_front();
+    pass_data_left = pass_data_left_mem.pop_front();
+    input_pattern = input_pattern_mem.pop_front();
+    @(posedge clk) #1 ;
+    clear_acc = 0;
+  end
   #1000
+
   $finish;
 end
 
@@ -231,7 +252,8 @@ pe_cube #(
   .iCfsInputPattern(input_pattern),
   .iCfsPassDataLeft(pass_data_left),
   .iCfsOutputLeftShift(output_left_shift),
-  .oResult(result)
+  .oResult(result),
+  .oResultValid(result_valid)
 );
 
 endmodule

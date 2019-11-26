@@ -5,10 +5,19 @@ module pe (
   input  wire [7:0]  iWeight,
   input  wire        iClearAcc,
   output reg  [7:0]  oWeight,
-  output reg  [19:0] oAcc
+  output reg  [19:0] oAcc,
+  output reg         oClearAcc
 );
 
 wire [19:0] result;
+
+always @(posedge iClk) begin
+  if (iRst) begin
+    oClearAcc <= 'd0;
+  end else begin
+    oClearAcc <= iClearAcc;
+  end
+end
 
 always @(posedge iClk) begin
   if (iRst) begin

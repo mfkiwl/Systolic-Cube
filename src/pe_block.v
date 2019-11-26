@@ -9,14 +9,19 @@ module pe_block #(
   input  wire [7:0]              iWeight,
   input  wire [ARRAY_NUM-2:0]    iCfsPassDataLeft,
   input  wire [4:0]              iCfsOutputLeftShift,
-  output wire [8*ARRAY_NUM*BLOCK_NUM-1:0] oResult
+  output wire [8*ARRAY_NUM*BLOCK_NUM-1:0] oResult,
+  output wire [ARRAY_NUM*BLOCK_NUM-1:0] oResultValid
 );
 
 wire [7:0] weight_to_pe_block   [0:BLOCK_NUM-1];
 wire [7:0] weight_from_pe_block [0:BLOCK_NUM-1];
 reg  [ARRAY_NUM-2:0]   cfs_pass_data_left_dly [0:BLOCK_NUM-2];
 
+wire       clear_acc_to_pe_block   [0:BLOCK_NUM-1];
+wire       clear_acc_from_pe_block [0:BLOCK_NUM-1];
+
 assign weight_to_pe_block[0] = iWeight;
+assign clear_acc_to_pe_block[0] = iClearAcc;
 
 always @(posedge iClk) begin
   if (iRst) begin
@@ -31,13 +36,15 @@ pe_array #(
 ) pe_array_first (
   .iClk(iClk),
   .iRst(iRst),
-  .iClearAcc(iClearAcc),
+  .iClearAcc(clear_acc_to_pe_block[0]),
   .iCfsPassDataLeft(iCfsPassDataLeft),
   .iData(iData[8*ARRAY_NUM-1:0]),
   .iWeight(weight_to_pe_block[0]),
   .iCfsOutputLeftShift(iCfsOutputLeftShift),
   .oWeight(weight_from_pe_block[0]),
-  .oResult(oResult[8*ARRAY_NUM-1:0])
+  .oResult(oResult[8*ARRAY_NUM-1:0]),
+  .oClearAcc(clear_acc_from_pe_block[0]),
+  .oResultValid(oResultValid[ARRAY_NUM-1:0])
 );
 
 generate
@@ -55,6 +62,7 @@ generate
 
   for (i = 1; i < BLOCK_NUM; i = i + 1) begin
     assign weight_to_pe_block[i] = weight_from_pe_block[i-1];
+    assign clear_acc_to_pe_block[i] = clear_acc_from_pe_block[i-1];
   end
 
   for (i = 1; i < BLOCK_NUM; i = i + 1) begin
@@ -63,13 +71,15 @@ generate
     ) pe_array_i (
       .iClk(iClk),
       .iRst(iRst),
-      .iClearAcc(iClearAcc),
+      .iClearAcc(clear_acc_to_pe_block[i]),
       .iCfsPassDataLeft(cfs_pass_data_left_dly[i-1]),
       .iData(iData[8*ARRAY_NUM*(i+1)-1:8*ARRAY_NUM*i]),
       .iWeight(weight_to_pe_block[i]),
       .iCfsOutputLeftShift(iCfsOutputLeftShift),
       .oWeight(weight_from_pe_block[i]),
-      .oResult(oResult[8*ARRAY_NUM*(i+1)-1:8*ARRAY_NUM*i])
+      .oResult(oResult[8*ARRAY_NUM*(i+1)-1:8*ARRAY_NUM*i]),
+      .oClearAcc(clear_acc_from_pe_block[i]),
+      .oResultValid(oResultValid[ARRAY_NUM*(i+1)-1:ARRAY_NUM*i])
     );
   end
 endgenerate

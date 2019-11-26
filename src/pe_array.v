@@ -9,7 +9,9 @@ module pe_array #(
   input  wire [7:0]              iWeight,
   input  wire [4:0]              iCfsOutputLeftShift,
   output wire [7:0]              oWeight,
-  output reg  [8*ARRAY_NUM-1:0]  oResult
+  output reg  [8*ARRAY_NUM-1:0]  oResult,
+  output wire                    oClearAcc,
+  output wire [ARRAY_NUM-1:0]    oResultValid
 );
 
 reg  [7:0]  data_cache     [0:ARRAY_NUM-1];
@@ -18,9 +20,14 @@ wire [7:0]  data_to_pe     [0:ARRAY_NUM-1];
 wire [7:0]  weight_to_pe   [0:ARRAY_NUM-1];
 wire [7:0]  weight_from_pe [0:ARRAY_NUM-1];
 wire [19:0] acc            [0:ARRAY_NUM-1];
+wire        clear_acc_from_pe [0:ARRAY_NUM-1];
+wire        clear_acc_to_pe   [0:ARRAY_NUM-1];
 
 assign weight_to_pe[0] = iWeight;
 assign oWeight = weight_from_pe[0];
+assign clear_acc_to_pe[0] = iClearAcc;
+assign oClearAcc = clear_acc_from_pe[0];
+assign oResultValid[0] = clear_acc_to_pe[0];
 
 always @(posedge iClk) begin
   if (iRst) begin
@@ -35,6 +42,8 @@ generate
 
   for (i = 1; i < ARRAY_NUM; i = i + 1) begin
     assign weight_to_pe[i] = weight_from_pe[i-1];
+    assign oResultValid[i] = clear_acc_to_pe[i];
+    assign clear_acc_to_pe[i] = clear_acc_from_pe[i-1];
   end
 
   for (i = 0; i < ARRAY_NUM; i = i + 1) begin : pe
@@ -44,9 +53,10 @@ generate
       .iRst(iRst),
       .iData(data_to_pe[i]),
       .iWeight(weight_to_pe[i]),
-      .iClearAcc(iClearAcc),
+      .iClearAcc(clear_acc_to_pe[i]),
       .oWeight(weight_from_pe[i]),
-      .oAcc(acc[i])
+      .oAcc(acc[i]),
+      .oClearAcc(clear_acc_from_pe[i])
     );
   end
 
