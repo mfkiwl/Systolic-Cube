@@ -8,7 +8,7 @@ module pe_cube #(
   input  wire                    iClearAcc,
   input  wire [8*CUBE_NUM-1:0]   iWeight,
   input  wire [8*ARRAY_NUM-1:0]  iData1,
-  input  wire [8*ARRAY_NUM-1:0]  iData2,
+  input  wire [7:0]              iData2,
   input  wire [3*ARRAY_NUM-1:0]  iCfsInputPattern, // need to extend if CUBE_NUM is not 3!
   input  wire [ARRAY_NUM-2:0]    iCfsPassDataLeft,
   input  wire [4:0]              iCfsOutputLeftShift,
@@ -33,13 +33,13 @@ reg clear_acc_dly, clear_acc_dly2;
 assign clear_acc_to_pe_block = clear_acc_dly2;
 
 always @(posedge iClk) begin
-	if (iRst) begin
-		clear_acc_dly  <= 'd0;
-		clear_acc_dly2 <= 'd0;
-	end else begin
-		clear_acc_dly  <= iClearAcc;
-		clear_acc_dly2 <= clear_acc_dly;
-	end
+  if (iRst) begin
+    clear_acc_dly  <= 'd0;
+    clear_acc_dly2 <= 'd0;
+  end else begin
+    clear_acc_dly  <= iClearAcc;
+    clear_acc_dly2 <= clear_acc_dly;
+  end
 end
 
 generate
@@ -53,11 +53,11 @@ generate
 
   // need to extend if CUBE_NUM is not 3!
   for (i = 0; i < ARRAY_NUM; i = i + 1) begin
-    assign data_after_mux[i] = iCfsInputPattern[3*(i+1)-1:3*i] == PATTERN_1 ? {iData2[8*(i+1)-1:8*i], iData2[8*(i+1)-1:8*i], iData1[8*(i+1)-1:8*i]} : 
-                               iCfsInputPattern[3*(i+1)-1:3*i] == PATTERN_2 ? {iData2[8*(i+1)-1:8*i], iData1[8*(i+1)-1:8*i], iData1[8*(i+1)-1:8*i]} : 
+    assign data_after_mux[i] = iCfsInputPattern[3*(i+1)-1:3*i] == PATTERN_1 ? {iData2, iData2, iData1[8*(i+1)-1:8*i]} : 
+                               iCfsInputPattern[3*(i+1)-1:3*i] == PATTERN_2 ? {iData2, iData1[8*(i+1)-1:8*i], iData1[8*(i+1)-1:8*i]} : 
                                iCfsInputPattern[3*(i+1)-1:3*i] == PATTERN_3 ? {iData1[8*(i+1)-1:8*i], iData1[8*(i+1)-1:8*i], iData1[8*(i+1)-1:8*i]} : 
-                               iCfsInputPattern[3*(i+1)-1:3*i] == PATTERN_4 ? {iData1[8*(i+1)-1:8*i], iData1[8*(i+1)-1:8*i], iData2[8*(i+1)-1:8*i]} : 
-                               iCfsInputPattern[3*(i+1)-1:3*i] == PATTERN_5 ? {iData1[8*(i+1)-1:8*i], iData2[8*(i+1)-1:8*i], iData2[8*(i+1)-1:8*i]} : 'd0;
+                               iCfsInputPattern[3*(i+1)-1:3*i] == PATTERN_4 ? {iData1[8*(i+1)-1:8*i], iData1[8*(i+1)-1:8*i], iData2} : 
+                               iCfsInputPattern[3*(i+1)-1:3*i] == PATTERN_5 ? {iData1[8*(i+1)-1:8*i], iData2, iData2} : 'd0;
   end
 
   for (i = 0; i < CUBE_NUM; i = i + 1) begin

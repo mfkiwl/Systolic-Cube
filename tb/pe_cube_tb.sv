@@ -30,15 +30,15 @@ wire [8*ARRAY_NUM*BLOCK_NUM*CUBE_NUM-1:0] result;
 wire [ARRAY_NUM*BLOCK_NUM*CUBE_NUM-1:0] result_valid;
 
 reg  [ARRAY_NUM-2:0]   pass_data_left;
+reg  [(8*ARRAY_NUM+8)-1:0] data;
 reg  [8*ARRAY_NUM-1:0] data1;
-reg  [8*ARRAY_NUM-1:0] data2;
+reg  [7:0]            data2;
 reg  [3*ARRAY_NUM-1:0] input_pattern;
 reg  [8*CUBE_NUM-1:0]  weight;
 
 // 31 clock cycles per 3x3 conv block
 reg  [ARRAY_NUM-2:0]   pass_data_left_mem [$:31];
-reg  [8*ARRAY_NUM-1:0] data1_mem          [$:31];
-reg  [8*ARRAY_NUM-1:0] data2_mem          [$:31];
+reg  [(8*ARRAY_NUM+8)-1:0] data_mem       [$:31];
 reg  [3*ARRAY_NUM-1:0] input_pattern_mem  [$:31];
 reg  [8*CUBE_NUM-1:0]  weight_mem         [$:31];
 
@@ -52,70 +52,38 @@ initial begin
     count = count + 1;
   end
 
-  // data1, data2
-  data1_mem.push_back({8'd0, 8'd0, 8'd1});
-  data1_mem.push_back({8'd0, 8'd6, 8'd2});
-  data1_mem.push_back({8'd11, 8'd7, 8'd3});
-  data1_mem.push_back({8'd12, 8'd8, 8'd4});
-  data1_mem.push_back({8'd13, 8'd9, 8'd5});
-  data1_mem.push_back({8'd14, 8'd10, 8'd0});
-  data1_mem.push_back({8'd15, 8'd0, 8'd0});
-  data1_mem.push_back({8'd18, 8'd0, 8'd0});
-  data1_mem.push_back({8'd19, 8'd0, 8'd0});
-  data1_mem.push_back({8'd20, 8'd0, 8'd26});
-  data1_mem.push_back({8'd23, 8'd31, 8'd27});
-  data1_mem.push_back({8'd24, 8'd32, 8'd28});
-  data1_mem.push_back({8'd25, 8'd33, 8'd29});
-  data1_mem.push_back({8'd38, 8'd34, 8'd30});
-  data1_mem.push_back({8'd39, 8'd35, 8'd0});
-  data1_mem.push_back({8'd40, 8'd0, 8'd0});
-  data1_mem.push_back({8'd43, 8'd0, 8'd0});
-  data1_mem.push_back({8'd44, 8'd0, 8'd0});
-  data1_mem.push_back({8'd45, 8'd0, 8'd51});
-  data1_mem.push_back({8'd48, 8'd56, 8'd52});
-  data1_mem.push_back({8'd49, 8'd57, 8'd53});
-  data1_mem.push_back({8'd50, 8'd58, 8'd54});
-  data1_mem.push_back({8'd63, 8'd59, 8'd55});
-  data1_mem.push_back({8'd64, 8'd60, 8'd0});
-  data1_mem.push_back({8'd65, 8'd0, 8'd0});
-  data1_mem.push_back({8'd68, 8'd0, 8'd0});
-  data1_mem.push_back({8'd69, 8'd0, 8'd0});
-  data1_mem.push_back({8'd70, 8'd0, 8'd0});
-  data1_mem.push_back({8'd73, 8'd0, 8'd0});
-  data1_mem.push_back({8'd74, 8'd0, 8'd0});
-  data1_mem.push_back({8'd75, 8'd0, 8'd0});
-
-  data2_mem.push_back({8'd0, 8'd0, 8'd0});
-  data2_mem.push_back({8'd0, 8'd0, 8'd0});
-  data2_mem.push_back({8'd0, 8'd0, 8'd0});
-  data2_mem.push_back({8'd0, 8'd0, 8'd0});
-  data2_mem.push_back({8'd0, 8'd0, 8'd0});
-  data2_mem.push_back({8'd16, 8'd0, 8'd0});
-  data2_mem.push_back({8'd17, 8'd0, 8'd0});
-  data2_mem.push_back({8'd0, 8'd0, 8'd0});
-  data2_mem.push_back({8'd21, 8'd0, 8'd0});
-  data2_mem.push_back({8'd22, 8'd0, 8'd0});
-  data2_mem.push_back({8'd0, 8'd0, 8'd0});
-  data2_mem.push_back({8'd36, 8'd0, 8'd0});
-  data2_mem.push_back({8'd37, 8'd0, 8'd0});
-  data2_mem.push_back({8'd0, 8'd0, 8'd0});
-  data2_mem.push_back({8'd41, 8'd0, 8'd0});
-  data2_mem.push_back({8'd42, 8'd0, 8'd0});
-  data2_mem.push_back({8'd0, 8'd0, 8'd0});
-  data2_mem.push_back({8'd46, 8'd0, 8'd0});
-  data2_mem.push_back({8'd47, 8'd0, 8'd0});
-  data2_mem.push_back({8'd0, 8'd0, 8'd0});
-  data2_mem.push_back({8'd61, 8'd0, 8'd0});
-  data2_mem.push_back({8'd62, 8'd0, 8'd0});
-  data2_mem.push_back({8'd0, 8'd0, 8'd0});
-  data2_mem.push_back({8'd66, 8'd0, 8'd0});
-  data2_mem.push_back({8'd67, 8'd0, 8'd0});
-  data2_mem.push_back({8'd0, 8'd0, 8'd0});
-  data2_mem.push_back({8'd71, 8'd0, 8'd0});
-  data2_mem.push_back({8'd72, 8'd0, 8'd0});
-  data2_mem.push_back({8'd0, 8'd0, 8'd0});
-  data2_mem.push_back({8'd0, 8'd0, 8'd0});
-  data2_mem.push_back({8'd0, 8'd0, 8'd0});
+  // {data2[7:0], data1}
+  data_mem.push_back({8'd0, 8'd0, 8'd0, 8'd1});
+  data_mem.push_back({8'd0, 8'd0, 8'd6, 8'd2});
+  data_mem.push_back({8'd0, 8'd11, 8'd7, 8'd3});
+  data_mem.push_back({8'd0, 8'd12, 8'd8, 8'd4});
+  data_mem.push_back({8'd0, 8'd13, 8'd9, 8'd5});
+  data_mem.push_back({8'd16, 8'd14, 8'd10, 8'd0});
+  data_mem.push_back({8'd17, 8'd15, 8'd0, 8'd0});
+  data_mem.push_back({8'd0, 8'd18, 8'd0, 8'd0});
+  data_mem.push_back({8'd21, 8'd19, 8'd0, 8'd0});
+  data_mem.push_back({8'd22, 8'd20, 8'd0, 8'd26});
+  data_mem.push_back({8'd0, 8'd23, 8'd31, 8'd27});
+  data_mem.push_back({8'd36, 8'd24, 8'd32, 8'd28});
+  data_mem.push_back({8'd37, 8'd25, 8'd33, 8'd29});
+  data_mem.push_back({8'd0, 8'd38, 8'd34, 8'd30});
+  data_mem.push_back({8'd41, 8'd39, 8'd35, 8'd0});
+  data_mem.push_back({8'd42, 8'd40, 8'd0, 8'd0});
+  data_mem.push_back({8'd0, 8'd43, 8'd0, 8'd0});
+  data_mem.push_back({8'd46, 8'd44, 8'd0, 8'd0});
+  data_mem.push_back({8'd47, 8'd45, 8'd0, 8'd51});
+  data_mem.push_back({8'd0, 8'd48, 8'd56, 8'd52});
+  data_mem.push_back({8'd61, 8'd49, 8'd57, 8'd53});
+  data_mem.push_back({8'd62, 8'd50, 8'd58, 8'd54});
+  data_mem.push_back({8'd0, 8'd63, 8'd59, 8'd55});
+  data_mem.push_back({8'd66, 8'd64, 8'd60, 8'd0});
+  data_mem.push_back({8'd67, 8'd65, 8'd0, 8'd0});
+  data_mem.push_back({8'd0, 8'd68, 8'd0, 8'd0});
+  data_mem.push_back({8'd71, 8'd69, 8'd0, 8'd0});
+  data_mem.push_back({8'd72, 8'd70, 8'd0, 8'd0});
+  data_mem.push_back({8'd0, 8'd73, 8'd0, 8'd0});
+  data_mem.push_back({8'd0, 8'd74, 8'd0, 8'd0});
+  data_mem.push_back({8'd0, 8'd75, 8'd0, 8'd0});
 
   // input_pattern
   input_pattern_mem.push_back({NOT_CARE, NOT_CARE, PATTERN_1});
@@ -216,8 +184,9 @@ always @(start_config) begin
   // end
 
   for (i = 0; i < 27; i = i + 1) begin
-    data1 = data1_mem.pop_front();
-    data2 = data2_mem.pop_front();
+    data = data_mem.pop_front();
+    data1 = data[23:0];
+    data2 = data[31:24];
     weight = weight_mem.pop_front();
     pass_data_left = pass_data_left_mem.pop_front();
     input_pattern = input_pattern_mem.pop_front();
@@ -225,8 +194,9 @@ always @(start_config) begin
   end
   clear_acc = 1;
   for (i = 0; i < 4; i = i + 1) begin
-    data1 = data1_mem.pop_front();
-    data2 = data2_mem.pop_front();
+    data = data_mem.pop_front();
+    data1 = data[23:0];
+    data2 = data[31:24];
     weight = weight_mem.pop_front();
     pass_data_left = pass_data_left_mem.pop_front();
     input_pattern = input_pattern_mem.pop_front();
