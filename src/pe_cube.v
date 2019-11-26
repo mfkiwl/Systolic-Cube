@@ -7,12 +7,9 @@ module pe_cube #(
   input  wire                    iRst,
   input  wire                    iClearAcc,
   input  wire [8*CUBE_NUM-1:0]   iWeight,
-
-  // need to extend iDatax if CUBE_NUM is not 3!
   input  wire [8*ARRAY_NUM-1:0]  iData1,
   input  wire [8*ARRAY_NUM-1:0]  iData2,
-  input  wire [3*ARRAY_NUM-1:0]  iCfsInputPattern,
-
+  input  wire [3*ARRAY_NUM-1:0]  iCfsInputPattern, // need to extend if CUBE_NUM is not 3!
   input  wire [ARRAY_NUM-2:0]    iCfsPassDataLeft,
   input  wire [4:0]              iCfsOutputLeftShift,
   output wire [8*ARRAY_NUM*BLOCK_NUM*CUBE_NUM-1:0] oResult
@@ -56,7 +53,7 @@ generate
       .iRst(iRst),
       .iClearAcc(iClearAcc),
       .iData(data_to_pe_block),
-      .iWeight(iWeight[8*CUBE_NUM*(i+1)-1:8*CUBE_NUM*i]),
+      .iWeight(iWeight[8*(i+1)-1:8*i]),
       .iCfsPassDataLeft(iCfsPassDataLeft),
       .iCfsOutputLeftShift(iCfsOutputLeftShift),
       .oResult(oResult)
