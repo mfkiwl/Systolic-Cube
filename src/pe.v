@@ -37,7 +37,7 @@ always @(posedge iClk) begin
   end
 end
 
-mult mult_i(
+appr_mult appr_mult_i(
   .iClk(iClk),
   .iRst(iRst),
   .iData1(iData),
