@@ -12,8 +12,15 @@ module micro_controller #(
     output reg                      oClearAcc,
     output reg  [3*ARRAY_NUM-1:0]   oInputPattern,
     output reg  [ARRAY_NUM-2:0]     oPassDataLeft,
-    output reg                      oDataValid,
-    output wire [$clog2(RAM_DEPTH)-1:0] oAddr
+    // rd
+    output reg                      oDataRdValid,
+    output wire [$clog2(RAM_DEPTH)-1:0] oAddrRd,
+    // wr
+    input  wire                     iAllResultFifoHasData,
+    output reg  [ARRAY_NUM*BLOCK_NUM*CUBE_NUM-1:0] oResultRdEn,
+    output wire                     oWriteEn,
+    output reg  [$clog2(RAM_DEPTH)-1:0] oAddrWr,
+    output wire [2:0]               oResultFifoSel // ceil(3 * 3 * 3 * 8 / 32) = 7
 );
 
 localparam IDLE   = 'd0,
@@ -36,15 +43,15 @@ wire      one_block_finish;
 wire      addr_valid;
 
 assign one_block_finish = (counter == CLEAR_CNT_LATENCY);
-assign oAddr = counter;
+assign oAddrRd = counter;
 assign oReady = (state == IDLE);
 assign addr_valid = (state == CONFIG);
 
 always @(posedge iClk) begin
     if (iRst) begin
-        oDataValid <= 'd0;
+        oDataRdValid <= 'd0;
     end else begin
-        oDataValid <= addr_valid;
+        oDataRdValid <= addr_valid;
     end
 end
 
@@ -166,6 +173,108 @@ always @(posedge iClk) begin
             'd30 : oPassDataLeft <= 2'd1;
             default : oPassDataLeft <= 2'd0;
         endcase
+    end
+end
+
+// wr
+reg        state_wr;
+reg        nxt_state_wr;
+wire       one_block_finish_wr;
+reg  [3:0] counter_wr;
+
+reg        write_en_dly, write_en_dly2;
+
+reg  [2:0] result_fifo_dly, result_fifo_dly2;
+
+localparam CLEAR_CNT_LATENCY_WR = 6;
+
+assign oResultFifoSel = result_fifo_dly2;
+assign oWriteEn = write_en_dly2;
+assign one_block_finish_wr = (counter_wr == CLEAR_CNT_LATENCY_WR);
+
+always @(*) begin
+    case (state_wr)
+        IDLE : nxt_state_wr = iAllResultFifoHasData;
+        CONFIG : nxt_state_wr = ~one_block_finish_wr;
+    endcase
+end
+
+always @(posedge iClk) begin
+    if (iRst) begin
+        state_wr <= 'd0;
+    end else begin
+        state_wr <= nxt_state_wr;
+    end
+end
+
+always @(posedge iClk) begin
+    if (iRst) begin
+        counter_wr <= 'd0;
+    end else begin
+        if (state_wr == CONFIG) begin
+            if (one_block_finish_wr) begin
+                counter_wr <= 'd0;
+            end else begin
+                counter_wr <= counter_wr + 'd1;
+            end
+        end
+    end
+end
+
+always @(posedge iClk) begin
+    if (iRst) begin
+        oResultRdEn <= 'd0;
+    end else if (state_wr == CONFIG) begin
+        case (counter_wr)
+            'd0 : oResultRdEn <= 27'h000_000f;
+            'd1 : oResultRdEn <= 27'h000_00f0;
+            'd2 : oResultRdEn <= 27'h000_0f00;
+            'd3 : oResultRdEn <= 27'h000_f000;
+            'd4 : oResultRdEn <= 27'h00f_0000;
+            'd5 : oResultRdEn <= 27'h0f0_0000;
+            'd6 : oResultRdEn <= 27'h700_0000;
+            default : oResultRdEn <= 27'd0;
+        endcase
+    end else begin
+        oResultRdEn <= 27'd0;
+    end
+end
+
+always @(posedge iClk) begin
+    if (iRst) begin
+        result_fifo_dly <= 'd0;
+    end else if (state_wr == CONFIG) begin
+        result_fifo_dly <= counter_wr;
+    end else begin
+        result_fifo_dly <= 3'd0;
+    end
+end
+
+always @(posedge iClk) begin
+    if (iRst) begin
+        result_fifo_dly2 <= 'd0;
+    end else begin
+        result_fifo_dly2 <= result_fifo_dly;
+    end
+end
+
+always @(posedge iClk) begin
+    if (iRst) begin
+        write_en_dly <= 'd0;
+        write_en_dly2 <= 'd0;
+    end begin
+        write_en_dly <= (state_wr == CONFIG);
+        write_en_dly2 <= write_en_dly;
+    end
+end
+
+always @(posedge iClk) begin
+    if (iRst) begin
+        oAddrWr <= 'd0;
+    end begin
+        if (write_en_dly2) begin
+            oAddrWr <= oAddrWr + 'd1;
+        end
     end
 end
 

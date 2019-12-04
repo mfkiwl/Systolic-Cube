@@ -27,7 +27,7 @@ assign weight_to_pe[0] = iWeight;
 assign oWeight = weight_from_pe[0];
 assign clear_acc_to_pe[0] = iClearAcc;
 assign oClearAcc = clear_acc_from_pe[0];
-assign oResultValid[0] = clear_acc_to_pe[0];
+assign oResultValid[0] = clear_acc_from_pe[0];
 
 always @(posedge iClk) begin
   if (iRst) begin
@@ -42,7 +42,7 @@ generate
 
   for (i = 1; i < ARRAY_NUM; i = i + 1) begin
     assign weight_to_pe[i] = weight_from_pe[i-1];
-    assign oResultValid[i] = clear_acc_to_pe[i];
+    assign oResultValid[i] = clear_acc_from_pe[i];
     assign clear_acc_to_pe[i] = clear_acc_from_pe[i-1];
   end
 

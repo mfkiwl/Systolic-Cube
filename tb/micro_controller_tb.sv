@@ -10,20 +10,20 @@ initial begin
 end
 `endif
 
-localparam ARRAY_NUM     = 3；
-localparam BLOCK_NUM     = 3；
-localparam CUBE_NUM      = 3；
-localparam RAM_DEPTH     = 2048；
+localparam ARRAY_NUM     = 3;
+localparam BLOCK_NUM     = 3;
+localparam CUBE_NUM      = 3;
+localparam RAM_DEPTH     = 2048;
 
 reg clk;
 reg rst;
 reg start;
 
-wire                       ready;
-wire                       clearacc;
-wire [(8*ARRAY_NUM+8)-1:0] inputpattern;
-wire [ARRAY_NUM-2:0]       passdataleft;
-wire                       addrvalid;
+wire                         ready;
+wire                         clearacc;
+wire [(8*ARRAY_NUM+8)-1:0]   inputpattern;
+wire [ARRAY_NUM-2:0]         passdataleft;
+wire                         addrvalid;
 wire [$clog2(RAM_DEPTH)-1:0] addr;
 
 initial begin
