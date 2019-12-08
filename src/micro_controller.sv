@@ -43,7 +43,7 @@ wire      one_block_finish;
 wire      addr_valid;
 
 assign one_block_finish = (counter == CLEAR_CNT_LATENCY);
-assign oAddrRd = counter;
+assign oAddrRd = counter * 4;
 assign oReady = (state == IDLE);
 assign addr_valid = (state == CONFIG);
 
@@ -273,7 +273,7 @@ always @(posedge iClk) begin
         oAddrWr <= 'd0;
     end begin
         if (write_en_dly2) begin
-            oAddrWr <= oAddrWr + 'd1;
+            oAddrWr <= oAddrWr + 'd4;
         end
     end
 end
